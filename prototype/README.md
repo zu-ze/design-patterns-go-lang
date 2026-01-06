@@ -19,22 +19,31 @@ When creating new objects is expensive (requires complex initialization, databas
 
 ## Structure
 
-The pattern consists of:
+### Core Components (Required)
+
+The Prototype pattern at its essence requires only:
 
 1. **Prototype Interface** (`Cloneable`, `Document`): Declares the cloning method
 2. **Concrete Prototype** (`Resume`, `Report`): Implements the cloning method to copy itself
 3. **Client**: Creates new objects by asking prototypes to clone themselves
-4. **Prototype Registry** (optional) (`DocumentRegistry`): Maintains a registry of available prototypes for easy access
+
+### Optional Enhancement
+
+4. **Prototype Registry/Manager** (`DocumentRegistry`): An optional component that maintains a registry of available prototypes for easy access. **Not part of the core pattern**, but useful when managing multiple prototype templates.
 
 ## Implementation Details
 
 In this example, we implement a document cloning system:
 
-- **Document Interface**: Defines the `Clone()` method that all documents must implement
-- **Concrete Documents**: Resume and Report implement deep cloning
+- **Document Interface**: Defines the `Clone()` method that all documents must implement (core pattern)
+- **Concrete Documents**: Resume and Report implement deep cloning (core pattern)
 - **Nested Objects**: Author and Address demonstrate deep copying of nested structures
-- **DocumentRegistry**: Acts as a prototype manager, storing template documents that can be cloned
+- **DocumentRegistry**: An optional enhancement that acts as a prototype manager, storing template documents that can be cloned
 - **Deep vs Shallow Copy**: The implementation shows proper deep copying of slices, maps, and nested objects
+
+The example demonstrates both approaches:
+1. **Direct cloning** (core pattern): `clonedResume := originalResume.Clone()`
+2. **Registry-based cloning** (optional enhancement): `newResume := registry.Create("resume-template")`
 
 ### Deep Copy vs Shallow Copy
 
@@ -128,9 +137,11 @@ func (r *Resume) Clone() *Resume {
 }
 ```
 
-## Prototype Registry (Manager)
+## Prototype Registry (Optional Enhancement)
 
-The registry pattern is often used with Prototype to manage available prototypes:
+**Important**: The registry is **NOT part of the core Prototype pattern**. The pattern works perfectly fine with just direct cloning: `clone := original.Clone()`.
+
+However, a registry can be added as an optional enhancement when you have multiple prototypes to manage:
 
 ```go
 registry := NewDocumentRegistry()
@@ -141,11 +152,22 @@ registry.Register("report-template", reportPrototype)
 newResume := registry.Create("resume-template")
 ```
 
+**When to Use a Registry:**
+- You have multiple prototype templates to manage
+- You want centralized access to prototypes by name/key
+- Prototypes need to be added/removed dynamically at runtime
+- You want to simplify client code that uses many different prototypes
+
+**When NOT to Use a Registry:**
+- You have only one or two prototypes
+- Prototypes are created inline or locally
+- Direct cloning is simpler for your use case
+
 **Benefits:**
 - Centralized prototype management
 - Easy lookup by name or key
 - Can add/remove prototypes at runtime
-- Simplifies client code
+- Simplifies client code when managing many templates
 
 ## Running the Example
 
@@ -195,10 +217,11 @@ Modified: 2024-XX-XX
 
 ## Key Takeaways
 
+- **Core Pattern**: Objects that can clone themselves via a `Clone()` method
+- **Registry is Optional**: Not part of the core pattern, only add it if you need to manage multiple prototypes
 - Use Prototype when object creation is expensive or complex
 - Always implement deep copying for objects with nested structures
 - Be careful with circular references and mutable fields
-- The Prototype Registry pattern simplifies prototype management
 - Cloning is faster than reconstruction when initialization is costly
 - Perfect for creating variations of similar objects
 - Trade-off: Clone method complexity vs. simplified object creation
